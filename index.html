@@ -1,0 +1,555 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Recorder</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Roboto, "Arial", sans-serif;
+    background: #111318;
+    color: #f0f0f5;
+    min-height: 100vh;
+}
+
+.app {
+    max-width: 480px;
+    min-height: 100vh;
+    margin: auto;
+    padding: 25px 22px;
+    background: #191b22;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 45px;
+}
+
+header h1 {
+    font-size: 23px;
+    font-weight: 600;
+}
+
+header span {
+    color: #c5b8ff;
+    font-size: 25px;
+}
+
+.subtitle {
+    color: #aaa9b4;
+    font-size: 14px;
+    margin-bottom: 40px;
+}
+
+.timer {
+    text-align: center;
+    font-size: 55px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    margin: 30px 0 15px;
+    font-variant-numeric: tabular-nums;
+}
+
+.status {
+    text-align: center;
+    color: #aaa9b4;
+    font-size: 14px;
+}
+
+.wave-container {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin: 35px 0;
+    overflow: hidden;
+}
+
+.bar {
+    width: 4px;
+    height: 10px;
+    border-radius: 10px;
+    background: #b9a8ff;
+    transition: height 0.1s;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    margin: 35px 0 50px;
+}
+
+.control {
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .2s;
+}
+
+.secondary {
+    width: 58px;
+    height: 58px;
+    background: #30323b;
+    color: white;
+    font-size: 22px;
+}
+
+.record {
+    width: 82px;
+    height: 82px;
+    background: #c7b7ff;
+    color: #29213e;
+    font-size: 28px;
+}
+
+.control:active {
+    transform: scale(.92);
+}
+
+.record.recording {
+    background: #ff8b9b;
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.section-title h2 {
+    font-size: 19px;
+}
+
+.section-title span {
+    color: #b9a8ff;
+    font-size: 13px;
+}
+
+.recordings {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recording-item {
+    background: #292b34;
+    padding: 16px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.recording-icon {
+    background: #413b56;
+    color: #c7b7ff;
+    border-radius: 14px;
+    width: 45px;
+    height: 45px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+}
+
+.recording-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.recording-info h3 {
+    font-size: 14px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recording-info p {
+    color: #aaa9b4;
+    font-size: 12px;
+}
+
+.item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.item-actions button {
+    background: transparent;
+    border: none;
+    color: #c7b7ff;
+    font-size: 19px;
+    cursor: pointer;
+}
+
+.empty {
+    text-align: center;
+    padding: 35px 10px;
+    color: #898994;
+    font-size: 14px;
+}
+
+.footer {
+    text-align: center;
+    color: #777781;
+    font-size: 11px;
+    margin-top: 40px;
+}
+
+@media (max-width: 360px) {
+    .timer {
+        font-size: 44px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+    <h1>Voice Recorder</h1>
+    <span>😄</span>
+</header>
+
+<p class="subtitle">Quinten´s Audio opneem dingetje voor ChromeOS.</p>
+
+<div class="timer" id="timer">00:00:00</div>
+<p class="status" id="status">Startklaar</p>
+
+<div class="wave-container" id="wave"></div>
+
+<div class="controls">
+
+    <button class="control secondary"
+        id="pauseBtn"
+        onclick="togglePause()"
+        title="Pause or resume"
+        disabled>
+        ⏸
+    </button>
+
+    <button class="control record"
+        id="recordBtn"
+        onclick="toggleRecording()">
+        ●
+    </button>
+
+    <button class="control secondary"
+        onclick="stopRecording()"
+        title="Stop recording">
+        ■
+    </button>
+
+</div>
+
+<div class="section-title">
+    <h2>Uw opnames gemaakt met Q´s site</h2>
+    <span id="count">0 opnames</span>
+</div>
+
+<div class="recordings" id="recordings">
+    <div class="empty">Opnames verschijnen hier.</div>
+</div>
+
+<div class="footer">
+    Gemaakt door Q · Audo opneem dingetje
+</div>
+
+</div>
+
+<script>
+let recorder;
+let chunks = [];
+let stream;
+let audioContext;
+let analyser;
+let animation;
+let timerInterval;
+let seconds = 0;
+let isPaused = false;
+let isRecording = false;
+let recordings = [];
+
+const timer = document.getElementById("timer");
+const statusText = document.getElementById("status");
+const recordBtn = document.getElementById("recordBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const wave = document.getElementById("wave");
+
+// Create waveform bars
+for (let i = 0; i < 45; i++) {
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    wave.appendChild(bar);
+}
+
+function formatTime(value) {
+    const h = Math.floor(value / 3600);
+    const m = Math.floor((value % 3600) / 60);
+    const s = value % 60;
+
+    return [h, m, s]
+        .map(n => String(n).padStart(2, "0"))
+        .join(":");
+}
+
+function updateTimer() {
+    timer.textContent = formatTime(seconds);
+}
+
+async function toggleRecording() {
+    if (isRecording) {
+        stopRecording();
+        return;
+    }
+
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
+        });
+
+        chunks = [];
+
+        recorder = new MediaRecorder(stream);
+
+        recorder.ondataavailable = event => {
+            if (event.data.size > 0) {
+                chunks.push(event.data);
+            }
+        };
+
+        recorder.onstop = saveRecording;
+
+        recorder.start();
+
+        seconds = 0;
+        isPaused = false;
+        isRecording = true;
+
+        updateTimer();
+
+        timerInterval = setInterval(() => {
+            if (!isPaused) {
+                seconds++;
+                updateTimer();
+            }
+        }, 1000);
+
+        startWaveform();
+
+        recordBtn.classList.add("recording");
+        recordBtn.textContent = "■";
+
+        pauseBtn.disabled = false;
+
+        statusText.textContent = "● Recording...";
+
+    } catch (error) {
+        alert("Microphone access failed. Please allow microphone permissions and try again.");
+    }
+}
+
+function togglePause() {
+    if (!recorder || !isRecording) return;
+
+    if (isPaused) {
+        recorder.resume();
+        isPaused = false;
+        pauseBtn.textContent = "⏸";
+        statusText.textContent = "● Recording...";
+        startWaveform();
+    } else {
+        recorder.pause();
+        isPaused = true;
+        pauseBtn.textContent = "▶";
+        statusText.textContent = "Recording paused";
+        cancelAnimationFrame(animation);
+    }
+}
+
+function stopRecording() {
+    if (!recorder || !isRecording) return;
+
+    recorder.stop();
+
+    clearInterval(timerInterval);
+    cancelAnimationFrame(animation);
+
+    stream.getTracks().forEach(track => track.stop());
+
+    isRecording = false;
+    isPaused = false;
+
+    recordBtn.classList.remove("recording");
+    recordBtn.textContent = "●";
+
+    pauseBtn.textContent = "⏸";
+    pauseBtn.disabled = true;
+
+    statusText.textContent = "Recording saved";
+
+    // Close audio analysis resources
+    if (audioContext && audioContext.state !== "closed") {
+        audioContext.close();
+    }
+}
+
+function startWaveform() {
+    if (!stream) return;
+
+    if (!audioContext || audioContext.state === "closed") {
+        audioContext = new AudioContext();
+        analyser = audioContext.createAnalyser();
+
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        analyser.fftSize = 128;
+    }
+
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const bars = document.querySelectorAll(".bar");
+
+    function draw() {
+        animation = requestAnimationFrame(draw);
+
+        analyser.getByteFrequencyData(data);
+
+        bars.forEach((bar, index) => {
+            const height = Math.max(
+                5,
+                (data[index % data.length] / 255) * 90
+            );
+
+            bar.style.height = height + "px";
+        });
+    }
+
+    draw();
+}
+
+function saveRecording() {
+    if (!chunks.length) return;
+
+    const mime = recorder.mimeType || "audio/webm";
+    const blob = new Blob(chunks, { type: mime });
+
+    const url = URL.createObjectURL(blob);
+
+    const extension = mime.includes("mp4") ? "mp4" : "webm";
+
+    const recording = {
+        id: Date.now(),
+        name: "Recording " + (recordings.length + 1),
+        duration: formatTime(seconds),
+        blob: blob,
+        url: url,
+        extension: extension
+    };
+
+    recordings.unshift(recording);
+
+    renderRecordings();
+}
+
+function renderRecordings() {
+    const container = document.getElementById("recordings");
+
+    document.getElementById("count").textContent =
+        recordings.length + " recordings";
+
+    container.innerHTML = "";
+
+    if (recordings.length === 0) {
+        container.innerHTML =
+            '<div class="empty">Your recordings will appear here.</div>';
+        return;
+    }
+
+    recordings.forEach(item => {
+        const element = document.createElement("div");
+        element.className = "recording-item";
+
+        const icon = document.createElement("div");
+        icon.className = "recording-icon";
+        icon.textContent = "🎵";
+
+        const info = document.createElement("div");
+        info.className = "recording-info";
+
+        const name = document.createElement("h3");
+        name.textContent = item.name;
+
+        const details = document.createElement("p");
+        details.textContent = item.duration + " · Audio recording";
+
+        info.append(name, details);
+
+        const actions = document.createElement("div");
+        actions.className = "item-actions";
+
+        const play = document.createElement("button");
+        play.textContent = "▶";
+        play.title = "Play recording";
+        play.onclick = () => playRecording(item);
+
+        const download = document.createElement("button");
+        download.textContent = "↓";
+        download.title = "Download recording";
+        download.onclick = () => {
+            const a = document.createElement("a");
+            a.href = item.url;
+            a.download = item.name + "." + item.extension;
+            a.click();
+        };
+
+        const remove = document.createElement("button");
+        remove.textContent = "×";
+        remove.title = "Delete recording";
+        remove.onclick = () => deleteRecording(item.id);
+
+        actions.append(play, download, remove);
+        element.append(icon, info, actions);
+
+        container.appendChild(element);
+    });
+}
+
+function playRecording(item) {
+    const audio = new Audio(item.url);
+    audio.play().catch(() => {
+        alert("Unable to play this recording.");
+    });
+}
+
+function deleteRecording(id) {
+    const index = recordings.findIndex(item => item.id === id);
+
+    if (index !== -1) {
+        URL.revokeObjectURL(recordings[index].url);
+        recordings.splice(index, 1);
+        renderRecordings();
+    }
+}
+</script>
+
+</body>
+</html>
