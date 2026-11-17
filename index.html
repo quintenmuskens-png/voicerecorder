@@ -69,7 +69,7 @@ header span{color:#c5b8ff;font-size:25px}
 <div class="footer">Gemaakt door Q · Audio opneem dingetje voor ChromeOS en andere besturingssystemen</div>
 </div>
 
-<script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script> <script>
 const $ = id => document.getElementById(id);
 let recorder,stream,chunks=[],seconds=0,timerInterval;
 let isPaused=false,isRecording=false;
@@ -152,7 +152,7 @@ function renderRecordings(){
   download.onclick=()=>{
    const a=document.createElement("a");
    a.href=r.url;
-   a.download="Quinten-opname-"+r.id+".webm";
+   a.download="Quinten-opname-"+r.id+".mp3";
    a.click();
   };
 
@@ -211,6 +211,74 @@ for(let i=0;i<45;i++){
  $("wave").append(bar);
 }
 
+ 
+async function convertToMP3(blob) {
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+
+    try {
+        const buffer = await context.decodeAudioData(
+            await blob.arrayBuffer()
+        );
+
+        const channels = Math.min(buffer.numberOfChannels, 2);
+        const sampleRate = buffer.sampleRate;
+
+        const encoder = new lamejs.Mp3Encoder(
+            channels,
+            sampleRate,
+            128
+        );
+
+        const left = buffer.getChannelData(0);
+        const right = channels === 2
+            ? buffer.getChannelData(1)
+            : null;
+
+        const mp3Data = [];
+        const blockSize = 1152;
+
+        for (let i = 0; i < left.length; i += blockSize) {
+            const leftChunk = left.slice(i, i + blockSize);
+            const left16 = new Int16Array(leftChunk.length);
+
+            for (let j = 0; j < leftChunk.length; j++) {
+                const sample = Math.max(-1, Math.min(1, leftChunk[j]));
+                left16[j] = sample < 0
+                    ? sample * 32768
+                    : sample * 32767;
+            }
+
+            let encoded;
+
+            if (channels === 2) {
+                const rightChunk = right.slice(i, i + blockSize);
+                const right16 = new Int16Array(rightChunk.length);
+
+                for (let j = 0; j < rightChunk.length; j++) {
+                    const sample = Math.max(-1, Math.min(1, rightChunk[j]));
+                    right16[j] = sample < 0
+                        ? sample * 32768
+                        : sample * 32767;
+                }
+
+                encoded = encoder.encodeBuffer(left16, right16);
+            } else {
+                encoded = encoder.encodeBuffer(left16);
+            }
+
+            if (encoded.length) mp3Data.push(encoded);
+        }
+
+        const finalChunk = encoder.flush();
+        if (finalChunk.length) mp3Data.push(finalChunk);
+
+        return new Blob(mp3Data, { type: "audio/mpeg" });
+
+    } finally {
+        await context.close();
+    }
+}
+
 async function startRecording(){
  try{
   if(!navigator.mediaDevices?.getUserMedia){
@@ -223,7 +291,7 @@ async function startRecording(){
   recorder.ondataavailable=e=>{
    if(e.data.size)chunks.push(e.data);
   };
-  recorder.onstop=async()=>{
+   recorder.onstop = async () => {     if (chunks.length) {         try {             $("status").textContent = "Bezig met MP3 converteren...";              const originalBlob = new Blob(chunks, {                 type: recorder.mimeType             });              const mp3Blob = await convertToMP3(originalBlob);              await saveToDB(mp3Blob);              $("status").textContent = "MP3 opgeslagen! 🎵";          } catch (error) {             console.error(error);             $("status").textContent = "MP3 converteren mislukt";             alert("MP3-conversie mislukt: " + error.message);         }     } };
    if(chunks.length){
     const blob=new Blob(chunks,{type:recorder.mimeType||"audio/webm"});
     try{
