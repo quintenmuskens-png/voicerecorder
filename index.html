@@ -1,294 +1,221 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#191b22">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Voice Recorder</title>
 
 <style>
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+ box-sizing: border-box;
+ margin: 0;
+ padding: 0;
 }
 
 body {
-    font-family: Roboto, "Arial", sans-serif;
-    background: #111318;
-    color: #f0f0f5;
-    min-height: 100vh;
+ font-family: Roboto, "Arial", sans-serif;
+ background: #111318;
+ color: #f0f0f5;
+ min-height: 100vh;
 }
 
 .app {
-    max-width: 480px;
-    min-height: 100vh;
-    margin: auto;
-    padding: 25px 22px;
-    background: #191b22;
-    position: relative;
+ max-width: 480px;
+ min-height: 100vh;
+ margin: auto;
+ padding: 25px 22px;
+ background: #191b22;
 }
 
 header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 45px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ margin-bottom: 45px;
 }
 
 header h1 {
-    font-size: 23px;
-    font-weight: 600;
+ font-size: 23px;
+ font-weight: 600;
 }
 
 header span {
-    color: #c5b8ff;
-    font-size: 25px;
+ color: #c5b8ff;
+ font-size: 25px;
 }
 
 .subtitle {
-    color: #aaa9b4;
-    font-size: 14px;
-    margin-bottom: 40px;
+ color: #aaa9b4;
+ font-size: 14px;
+ margin-bottom: 40px;
 }
 
 .timer {
-    text-align: center;
-    font-size: 55px;
-    font-weight: 300;
-    letter-spacing: 3px;
-    margin: 30px 0 15px;
-    font-variant-numeric: tabular-nums;
+ text-align: center;
+ font-size: 55px;
+ font-weight: 300;
+ letter-spacing: 3px;
+ margin: 30px 0 15px;
+ font-variant-numeric: tabular-nums;
 }
 
 .status {
-    text-align: center;
-    color: #aaa9b4;
-    font-size: 14px;
+ text-align: center;
+ color: #aaa9b4;
+ font-size: 14px;
 }
 
 .wave-container {
-    height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    margin: 35px 0;
-    overflow: hidden;
+ height: 120px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 4px;
+ margin: 35px 0;
+ overflow: hidden;
 }
 
 .bar {
-    width: 4px;
-    height: 10px;
-    border-radius: 10px;
-    background: #b9a8ff;
-    transition: height 0.1s;
+ width: 4px;
+ height: 10px;
+ border-radius: 10px;
+ background: #b9a8ff;
+ transition: height 0.1s;
 }
 
 .controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 25px;
-    margin: 35px 0 50px;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ gap: 25px;
+ margin: 35px 0 50px;
 }
 
 .control {
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: .2s;
+ border: none;
+ border-radius: 50%;
+ cursor: pointer;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ transition: .2s;
 }
 
 .secondary {
-    width: 58px;
-    height: 58px;
-    background: #30323b;
-    color: white;
-    font-size: 22px;
-}
-
-.secondary:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+ width: 58px;
+ height: 58px;
+ background: #30323b;
+ color: white;
+ font-size: 22px;
 }
 
 .record {
-    width: 82px;
-    height: 82px;
-    background: #c7b7ff;
-    color: #29213e;
-    font-size: 28px;
+ width: 82px;
+ height: 82px;
+ background: #c7b7ff;
+ color: #29213e;
+ font-size: 28px;
 }
 
-.control:active:not(:disabled) {
-    transform: scale(.92);
+.control:active {
+ transform: scale(.92);
 }
 
 .record.recording {
-    background: #ff8b9b;
+ background: #ff8b9b;
 }
 
 .section-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-bottom: 18px;
 }
 
 .section-title h2 {
-    font-size: 19px;
+ font-size: 19px;
 }
 
 .section-title span {
-    color: #b9a8ff;
-    font-size: 13px;
+ color: #b9a8ff;
+ font-size: 13px;
 }
 
 .recordings {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+ display: flex;
+ flex-direction: column;
+ gap: 12px;
 }
 
 .recording-item {
-    background: #292b34;
-    padding: 16px;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+ background: #292b34;
+ padding: 16px;
+ border-radius: 18px;
+ display: flex;
+ align-items: center;
+ gap: 12px;
 }
 
 .recording-icon {
-    background: #413b56;
-    color: #c7b7ff;
-    border-radius: 14px;
-    width: 45px;
-    height: 45px;
-    display: grid;
-    place-items: center;
-    font-size: 20px;
+ background: #413b56;
+ color: #c7b7ff;
+ border-radius: 14px;
+ width: 45px;
+ height: 45px;
+ display: grid;
+ place-items: center;
+ font-size: 20px;
 }
 
 .recording-info {
-    flex: 1;
-    min-width: 0;
+ flex: 1;
+ min-width: 0;
 }
 
 .recording-info h3 {
-    font-size: 14px;
-    margin-bottom: 5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+ font-size: 14px;
+ margin-bottom: 5px;
+ overflow: hidden;
+ text-overflow: ellipsis;
 }
 
 .recording-info p {
-    color: #aaa9b4;
-    font-size: 12px;
+ color: #aaa9b4;
+ font-size: 12px;
 }
 
 .item-actions {
-    display: flex;
-    gap: 12px;
+ display: flex;
+ gap: 8px;
 }
 
-.item-actions button, .item-actions a {
-    background: transparent;
-    border: none;
-    color: #c7b7ff;
-    font-size: 19px;
-    cursor: pointer;
-    text-decoration: none;
+.item-actions button {
+ background: transparent;
+ border: none;
+ color: #c7b7ff;
+ font-size: 19px;
+ cursor: pointer;
 }
 
 .empty {
-    text-align: center;
-    padding: 35px 10px;
-    color: #898994;
-    font-size: 14px;
+ text-align: center;
+ padding: 35px 10px;
+ color: #898994;
+ font-size: 14px;
 }
 
 .footer {
-    text-align: center;
-    color: #777781;
-    font-size: 11px;
-    margin-top: 40px;
-}
-
-/* INSTALLATIE POP-UP STYLING */
-.install-popup {
-    display: none; /* Verborgen totdat browser zegt dat installeren kan */
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 40px);
-    max-width: 440px;
-    background: #292b34;
-    border: 1px solid #413b56;
-    padding: 16px 18px;
-    border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    z-index: 1000;
-    animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-    from { transform: translate(-50%, 100px); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
-}
-
-.install-text h4 {
-    font-size: 15px;
-    color: #f0f0f5;
-    margin-bottom: 3px;
-}
-
-.install-text p {
-    font-size: 12px;
-    color: #aaa9b4;
-}
-
-.install-buttons {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-install {
-    background: #c7b7ff;
-    color: #29213e;
-    border: none;
-    padding: 9px 14px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.btn-close {
-    background: transparent;
-    color: #aaa9b4;
-    border: none;
-    font-size: 18px;
-    padding: 4px 8px;
-    cursor: pointer;
+ text-align: center;
+ color: #777781;
+ font-size: 11px;
+ margin-top: 40px;
 }
 
 @media (max-width: 360px) {
-    .timer {
-        font-size: 44px;
-    }
+ .timer {
+ font-size: 44px;
+ }
 }
 </style>
 </head>
@@ -298,11 +225,11 @@ header span {
 <div class="app">
 
 <header>
-    <h1>Voice Recorder</h1>
-    <span>😄</span>
+ <h1>Voice Recorder</h1>
+ <span>😄</span>
 </header>
 
-<p class="subtitle">Quinten´s Audio opneem dingetje voor ChromeOS.</p>
+<p class="subtitle">Quinten ́s Audio opneem dingetje voor ChromeOS.</p>
 
 <div class="timer" id="timer">00:00:00</div>
 <p class="status" id="status">Startklaar</p>
@@ -311,102 +238,44 @@ header span {
 
 <div class="controls">
 
-    <button class="control secondary"
-        id="pauseBtn"
-        onclick="togglePause()"
-        title="Pauzeren of hervatten"
-        disabled>
-        ⏸
-    </button>
+ <button class="control secondary"
+ id="pauseBtn"
+ onclick="togglePause()"
+ title="Pause or resume"
+ disabled>
+ ⏸
+ </button>
 
-    <button class="control record"
-        id="recordBtn"
-        onclick="toggleRecording()">
-        ●
-    </button>
+ <button class="control record"
+ id="recordBtn"
+ onclick="toggleRecording()">
+ ●
+ </button>
 
-    <button class="control secondary"
-        id="stopBtn"
-        onclick="stopRecording()"
-        title="Opname stoppen"
-        disabled>
-        ■
-    </button>
+ <button class="control secondary"
+ onclick="stopRecording()"
+ title="Stop recording">
+ ■
+ </button>
 
 </div>
 
 <div class="section-title">
-    <h2>Uw opnames gemaakt met Q´s site</h2>
-    <span id="count">0 opnames</span>
+ <h2>Uw opnames gemaakt met Q ́s site</h2>
+ <span id="count">0 opnames</span>
 </div>
 
 <div class="recordings" id="recordings">
-    <div class="empty">Opnames verschijnen hier.</div>
+ <div class="empty">Opnames verschijnen hier.</div>
 </div>
 
 <div class="footer">
-    Gemaakt door Q · Audio opneem dingetje voor ChromeOS en andere besturingssystemen zonder ingebouwde app
+ Gemaakt door Q · Audio opneem dingetje voor ChromeOS en andere bestruingssystemen zonder ingebouwde app
 </div>
 
-</div>
-
-<!-- INSTALLATIE POP-UP -->
-<div class="install-popup" id="installPopup">
-    <div class="install-text">
-        <h4>Installeer als app</h4>
-        <p>Gebruik Q's Recorder direct vanaf je bureaublad.</p>
-    </div>
-    <div class="install-buttons">
-        <button class="btn-install" id="installBtn">Installeer</button>
-        <button class="btn-close" id="closePopupBtn" title="Sluiten">✕</button>
-    </div>
 </div>
 
 <script>
-// --- 1. PWA INSTALLATIE LOGICA ---
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('Service Worker geregistreerd'))
-        .catch(err => console.log('SW fout:', err));
-}
-
-let deferredPrompt;
-const installPopup = document.getElementById('installPopup');
-const installBtn = document.getElementById('installBtn');
-const closePopupBtn = document.getElementById('closePopupBtn');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Voorkom dat Chrome meteen zijn eigen kleine balkje toont
-    e.preventDefault();
-    // Bewaar het event zodat we het later kunnen triggeren
-    deferredPrompt = e;
-    // Laat onze eigen mooie pop-up zien
-    installPopup.style.display = 'flex';
-});
-
-installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    // Toon de officiële installatie-prompt van ChromeOS/Windows/Android
-    deferredPrompt.prompt();
-    // Wacht op de keuze van de gebruiker
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`Gebruiker koos: ${outcome}`);
-    // Reset de prompt en verberg onze pop-up
-    deferredPrompt = null;
-    installPopup.style.display = 'none';
-});
-
-closePopupBtn.addEventListener('click', () => {
-    installPopup.style.display = 'none';
-});
-
-window.addEventListener('appinstalled', () => {
-    installPopup.style.display = 'none';
-    deferredPrompt = null;
-});
-
-
-// --- 2. VOICE RECORDER LOGICA ---
 let recorder;
 let chunks = [];
 let stream;
@@ -423,155 +292,138 @@ const timer = document.getElementById("timer");
 const statusText = document.getElementById("status");
 const recordBtn = document.getElementById("recordBtn");
 const pauseBtn = document.getElementById("pauseBtn");
-const stopBtn = document.getElementById("stopBtn");
 const wave = document.getElementById("wave");
-const recordingsContainer = document.getElementById("recordings");
-const countSpan = document.getElementById("count");
 
-// Maak geluidsgolf balkjes
+// Create waveform bars
 for (let i = 0; i < 45; i++) {
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    wave.appendChild(bar);
+ const bar = document.createElement("div");
+ bar.className = "bar";
+ wave.appendChild(bar);
 }
 
 function formatTime(value) {
-    const h = Math.floor(value / 3600);
-    const m = Math.floor((value % 3600) / 60);
-    const s = value % 60;
-    return [h, m, s].map(n => String(n).padStart(2, "0")).join(":");
+ const h = Math.floor(value / 3600);
+ const m = Math.floor((value % 3600) / 60);
+ const s = value % 60;
+
+ return [h, m, s]
+ .map(n => String(n).padStart(2, "0"))
+ .join(":");
 }
 
 function updateTimer() {
-    timer.textContent = formatTime(seconds);
+ timer.textContent = formatTime(seconds);
 }
 
 async function toggleRecording() {
-    if (isRecording) {
-        stopRecording();
-        return;
-    }
+ if (isRecording) {
+ stopRecording();
+ return;
+ }
 
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        chunks = [];
-        recorder = new MediaRecorder(stream);
+ try {
+ stream = await navigator.mediaDevices.getUserMedia({
+ audio: true
+ });
 
-        recorder.ondataavailable = event => {
-            if (event.data.size > 0) chunks.push(event.data);
-        };
+ chunks = [];
 
-        recorder.onstop = saveRecording;
-        recorder.start();
+ recorder = new MediaRecorder(stream);
 
-        seconds = 0;
-        isPaused = false;
-        isRecording = true;
-        updateTimer();
+ recorder.ondataavailable = event => {
+ if (event.data.size > 0) {
+ chunks.push(event.data);
+ }
+ };
 
-        timerInterval = setInterval(() => {
-            if (!isPaused) {
-                seconds++;
-                updateTimer();
-            }
-        }, 1000);
+ recorder.onstop = saveRecording;
 
-        startWaveform();
+ recorder.start();
 
-        recordBtn.classList.add("recording");
-        recordBtn.textContent = "■";
-        pauseBtn.disabled = false;
-        stopBtn.disabled = false;
-        statusText.textContent = "● Aan het opnemen...";
+ seconds = 0;
+ isPaused = false;
+ isRecording = true;
 
-} catch (error) {
-alert("Geen toegang tot microfoon. Geef toestemming in je browser en probeer opnieuw.");
+ updateTimer();
+
+ timerInterval = setInterval(() => {
+ if (!isPaused) {
+ seconds++;
+ updateTimer();
+ }
+ }, 1000);
+
+ startWaveform();
+
+ recordBtn.classList.add("recording");
+ recordBtn.textContent = "■";
+
+ pauseBtn.disabled = false;
+
+ statusText.textContent = "● Recording...";
+
+ } catch (error) {
+ alert("Microphone access failed. Please allow microphone permissions and try again.");
+ }
 }
-}
+
 function togglePause() {
-if (!recorder || !isRecording) return;
-if (isPaused) {
-recorder.resume();
-isPaused = false;
-pauseBtn.textContent = "⏸";
-statusText.textContent = "● Aan het opnemen...";
-startWaveform();
-} else {
-recorder.pause();
-isPaused = true;
-pauseBtn.textContent = "▶";
-statusText.textContent = "Opname gepauzeerd";
-cancelAnimationFrame(animation);
+ if (!recorder || !isRecording) return;
+
+ if (isPaused) {
+ recorder.resume();
+ isPaused = false;
+ pauseBtn.textContent = "⏸";
+ statusText.textContent = "● Recording...";
+ startWaveform();
+ } else {
+ recorder.pause();
+ isPaused = true;
+ pauseBtn.textContent = "▶";
+ statusText.textContent = "Recording paused";
+ cancelAnimationFrame(animation);
+ }
 }
-}
+
 function stopRecording() {
-if (!recorder || !isRecording) return;
-recorder.stop();
-clearInterval(timerInterval);
-cancelAnimationFrame(animation);
-stream.getTracks().forEach(track => track.stop());
-isRecording = false;
-isPaused = false;
-recordBtn.classList.remove("recording");
-recordBtn.textContent = "●";
-pauseBtn.textContent = "⏸";
-pauseBtn.disabled = true;
-stopBtn.disabled = true;
-statusText.textContent = "Opname opgeslagen";
-// Reset balkjes
-document.querySelectorAll(".bar").forEach(bar => bar.style.height = "10px");
-if (audioContext && audioContext.state !== "closed") {
-audioContext.close();
+ if (!recorder || !isRecording) return;
+
+ recorder.stop();
+
+ clearInterval(timerInterval);
+ cancelAnimationFrame(animation);
+
+ stream.getTracks().forEach(track => track.stop());
+
+ isRecording = false;
+ isPaused = false;
+
+ recordBtn.classList.remove("recording");
+ recordBtn.textContent = "●";
+
+ pauseBtn.textContent = "⏸";
+ pauseBtn.disabled = true;
+
+ statusText.textContent = "Recording saved";
+
+ // Close audio analysis resources
+ if (audioContext && audioContext.state !== "closed") {
+ audioContext.close();
+ }
 }
-}
+
 function startWaveform() {
-if (!stream) return;
-if (!audioContext || audioContext.state === "closed") {
-audioContext = new AudioContext();
-analyser = audioContext.createAnalyser();
-const source = audioContext.createMediaStreamSource(stream);
-source.connect(analyser);
-analyser.fftSize = 128;
-}
-const data = new Uint8Array(analyser.frequencyBinCount);
-const bars = document.querySelectorAll(".bar");
-function animate() {
-if (!isRecording || isPaused) return;
-analyser.getByteFrequencyData(data);
-bars.forEach((bar, index) => {
-const val = data[index] || 0;
-const height = Math.max(10, (val / 255) * 110);
-bar.style.height = ${height}px;
-});
-animation = requestAnimationFrame(animate);
-}
-animate();
-}
-function saveRecording() {
-const blob = new Blob(chunks, { type: "audio/webm" });
-const url = URL.createObjectURL(blob);
-const duration = formatTime(seconds);
-const name = Opname ${recordings.length + 1};
-recordings.unshift({ id: Date.now(), name, url, duration });
-renderRecordings();
-}
-function renderRecordings() {
-countSpan.textContent = ${recordings.length} ${recordings.length === 1 ? 'opname' : 'opnames'};
-if (recordings.length === 0) {
-recordingsContainer.innerHTML = <div class="empty">Opnames verschijnen hier.</div>;
-return;
-}
-recordingsContainer.innerHTML = recordings.map(rec => <div class="recording-item"> <div class="recording-icon">🎙️</div> <div class="recording-info"> <h3>${rec.name}</h3> <p>Duur: ${rec.duration}</p> </div> <div class="item-actions"> <button onclick="playAudio('${rec.url}')" title="Afspelen">▶</button> <a href="${rec.url}" download="${rec.name}.webm" title="Downloaden">⬇</a> <button onclick="deleteRecording(${rec.id})" title="Verwijderen">🗑</button> </div> </div>).join('');
-}
-let currentAudio = null;
-function playAudio(url) {
-if (currentAudio) {
-currentAudio.pause();
-}
-currentAudio = new Audio(url);
-currentAudio.play();
-}
-function deleteRecording(id) {
-recordings = recordings.filter(r => r.id !== id);
-renderRecordings();
-}
+ if (!stream) return;
+
+ if (!audioContext || audioContext.state === "closed") {
+ audioContext = new AudioContext();
+ analyser = audioContext.createAnalyser();
+
+ const source = audioContext.createMediaStreamSource(stream);
+ source.connect(analyser);
+
+ analyser.fftSize = 128;
+ }
+
+ const data = new Uint8Array(analyser.frequencyBinCount);
+ const bars = document.querySelectorAll(".bar
