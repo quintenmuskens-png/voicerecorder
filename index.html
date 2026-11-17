@@ -157,7 +157,7 @@ function renderRecordings(){
   };
 
   const del=document.createElement("button");
-  del.textContent="🗑";
+  del.textContent="X";
   del.title="Verwijderen";
   del.onclick=async()=>{
    if(!confirm("Deze opname verwijderen?"))return;
@@ -243,7 +243,7 @@ async function startRecording(){
   $("recordBtn").textContent="■";
   $("recordBtn").classList.add("recording");
   $("pauseBtn").disabled=false;
-  $("status").textContent="● Recording...";
+  $("status").textContent="● Opnemen...";
   $("pauseBtn").textContent="⏸";
   timerInterval=setInterval(()=>{
    if(!isPaused){
