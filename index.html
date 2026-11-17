@@ -1,8 +1,9 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#191b22">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Voice Recorder</title>
@@ -27,6 +28,7 @@ body {
     margin: auto;
     padding: 25px 22px;
     background: #191b22;
+    position: relative;
 }
 
 header {
@@ -111,6 +113,11 @@ header span {
     font-size: 22px;
 }
 
+.secondary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .record {
     width: 82px;
     height: 82px;
@@ -119,7 +126,7 @@ header span {
     font-size: 28px;
 }
 
-.control:active {
+.control:active:not(:disabled) {
     transform: scale(.92);
 }
 
@@ -179,6 +186,7 @@ header span {
     margin-bottom: 5px;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .recording-info p {
@@ -188,15 +196,16 @@ header span {
 
 .item-actions {
     display: flex;
-    gap: 8px;
+    gap: 12px;
 }
 
-.item-actions button {
+.item-actions button, .item-actions a {
     background: transparent;
     border: none;
     color: #c7b7ff;
     font-size: 19px;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .empty {
@@ -211,6 +220,69 @@ header span {
     color: #777781;
     font-size: 11px;
     margin-top: 40px;
+}
+
+/* INSTALLATIE POP-UP STYLING */
+.install-popup {
+    display: none; /* Verborgen totdat browser zegt dat installeren kan */
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 440px;
+    background: #292b34;
+    border: 1px solid #413b56;
+    padding: 16px 18px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 1000;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translate(-50%, 100px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.install-text h4 {
+    font-size: 15px;
+    color: #f0f0f5;
+    margin-bottom: 3px;
+}
+
+.install-text p {
+    font-size: 12px;
+    color: #aaa9b4;
+}
+
+.install-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-install {
+    background: #c7b7ff;
+    color: #29213e;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn-close {
+    background: transparent;
+    color: #aaa9b4;
+    border: none;
+    font-size: 18px;
+    padding: 4px 8px;
+    cursor: pointer;
 }
 
 @media (max-width: 360px) {
@@ -242,7 +314,7 @@ header span {
     <button class="control secondary"
         id="pauseBtn"
         onclick="togglePause()"
-        title="Pause or resume"
+        title="Pauzeren of hervatten"
         disabled>
         ⏸
     </button>
@@ -254,8 +326,10 @@ header span {
     </button>
 
     <button class="control secondary"
+        id="stopBtn"
         onclick="stopRecording()"
-        title="Stop recording">
+        title="Opname stoppen"
+        disabled>
         ■
     </button>
 
@@ -271,12 +345,68 @@ header span {
 </div>
 
 <div class="footer">
-    Gemaakt door Q · Audio opneem dingetje voor ChromeOS en andere bestruingssystemen zonder ingebouwde app
+    Gemaakt door Q · Audio opneem dingetje voor ChromeOS en andere besturingssystemen zonder ingebouwde app
 </div>
 
+</div>
+
+<!-- INSTALLATIE POP-UP -->
+<div class="install-popup" id="installPopup">
+    <div class="install-text">
+        <h4>Installeer als app</h4>
+        <p>Gebruik Q's Recorder direct vanaf je bureaublad.</p>
+    </div>
+    <div class="install-buttons">
+        <button class="btn-install" id="installBtn">Installeer</button>
+        <button class="btn-close" id="closePopupBtn" title="Sluiten">✕</button>
+    </div>
 </div>
 
 <script>
+// --- 1. PWA INSTALLATIE LOGICA ---
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker geregistreerd'))
+        .catch(err => console.log('SW fout:', err));
+}
+
+let deferredPrompt;
+const installPopup = document.getElementById('installPopup');
+const installBtn = document.getElementById('installBtn');
+const closePopupBtn = document.getElementById('closePopupBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Voorkom dat Chrome meteen zijn eigen kleine balkje toont
+    e.preventDefault();
+    // Bewaar het event zodat we het later kunnen triggeren
+    deferredPrompt = e;
+    // Laat onze eigen mooie pop-up zien
+    installPopup.style.display = 'flex';
+});
+
+installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    // Toon de officiële installatie-prompt van ChromeOS/Windows/Android
+    deferredPrompt.prompt();
+    // Wacht op de keuze van de gebruiker
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`Gebruiker koos: ${outcome}`);
+    // Reset de prompt en verberg onze pop-up
+    deferredPrompt = null;
+    installPopup.style.display = 'none';
+});
+
+closePopupBtn.addEventListener('click', () => {
+    installPopup.style.display = 'none';
+});
+
+window.addEventListener('appinstalled', () => {
+    installPopup.style.display = 'none';
+    deferredPrompt = null;
+});
+
+
+// --- 2. VOICE RECORDER LOGICA ---
 let recorder;
 let chunks = [];
 let stream;
@@ -293,9 +423,12 @@ const timer = document.getElementById("timer");
 const statusText = document.getElementById("status");
 const recordBtn = document.getElementById("recordBtn");
 const pauseBtn = document.getElementById("pauseBtn");
+const stopBtn = document.getElementById("stopBtn");
 const wave = document.getElementById("wave");
+const recordingsContainer = document.getElementById("recordings");
+const countSpan = document.getElementById("count");
 
-// Create waveform bars
+// Maak geluidsgolf balkjes
 for (let i = 0; i < 45; i++) {
     const bar = document.createElement("div");
     bar.className = "bar";
@@ -306,10 +439,7 @@ function formatTime(value) {
     const h = Math.floor(value / 3600);
     const m = Math.floor((value % 3600) / 60);
     const s = value % 60;
-
-    return [h, m, s]
-        .map(n => String(n).padStart(2, "0"))
-        .join(":");
+    return [h, m, s].map(n => String(n).padStart(2, "0")).join(":");
 }
 
 function updateTimer() {
@@ -323,28 +453,20 @@ async function toggleRecording() {
     }
 
     try {
-        stream = await navigator.mediaDevices.getUserMedia({
-            audio: true
-        });
-
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         chunks = [];
-
         recorder = new MediaRecorder(stream);
 
         recorder.ondataavailable = event => {
-            if (event.data.size > 0) {
-                chunks.push(event.data);
-            }
+            if (event.data.size > 0) chunks.push(event.data);
         };
 
         recorder.onstop = saveRecording;
-
         recorder.start();
 
         seconds = 0;
         isPaused = false;
         isRecording = true;
-
         updateTimer();
 
         timerInterval = setInterval(() => {
@@ -358,199 +480,98 @@ async function toggleRecording() {
 
         recordBtn.classList.add("recording");
         recordBtn.textContent = "■";
-
         pauseBtn.disabled = false;
+        stopBtn.disabled = false;
+        statusText.textContent = "● Aan het opnemen...";
 
-        statusText.textContent = "● Recording...";
-
-    } catch (error) {
-        alert("Microphone access failed. Please allow microphone permissions and try again.");
-    }
+} catch (error) {
+alert("Geen toegang tot microfoon. Geef toestemming in je browser en probeer opnieuw.");
 }
-
+}
 function togglePause() {
-    if (!recorder || !isRecording) return;
-
-    if (isPaused) {
-        recorder.resume();
-        isPaused = false;
-        pauseBtn.textContent = "⏸";
-        statusText.textContent = "● Recording...";
-        startWaveform();
-    } else {
-        recorder.pause();
-        isPaused = true;
-        pauseBtn.textContent = "▶";
-        statusText.textContent = "Recording paused";
-        cancelAnimationFrame(animation);
-    }
+if (!recorder || !isRecording) return;
+if (isPaused) {
+recorder.resume();
+isPaused = false;
+pauseBtn.textContent = "⏸";
+statusText.textContent = "● Aan het opnemen...";
+startWaveform();
+} else {
+recorder.pause();
+isPaused = true;
+pauseBtn.textContent = "▶";
+statusText.textContent = "Opname gepauzeerd";
+cancelAnimationFrame(animation);
 }
-
+}
 function stopRecording() {
-    if (!recorder || !isRecording) return;
-
-    recorder.stop();
-
-    clearInterval(timerInterval);
-    cancelAnimationFrame(animation);
-
-    stream.getTracks().forEach(track => track.stop());
-
-    isRecording = false;
-    isPaused = false;
-
-    recordBtn.classList.remove("recording");
-    recordBtn.textContent = "●";
-
-    pauseBtn.textContent = "⏸";
-    pauseBtn.disabled = true;
-
-    statusText.textContent = "Recording saved";
-
-    // Close audio analysis resources
-    if (audioContext && audioContext.state !== "closed") {
-        audioContext.close();
-    }
+if (!recorder || !isRecording) return;
+recorder.stop();
+clearInterval(timerInterval);
+cancelAnimationFrame(animation);
+stream.getTracks().forEach(track => track.stop());
+isRecording = false;
+isPaused = false;
+recordBtn.classList.remove("recording");
+recordBtn.textContent = "●";
+pauseBtn.textContent = "⏸";
+pauseBtn.disabled = true;
+stopBtn.disabled = true;
+statusText.textContent = "Opname opgeslagen";
+// Reset balkjes
+document.querySelectorAll(".bar").forEach(bar => bar.style.height = "10px");
+if (audioContext && audioContext.state !== "closed") {
+audioContext.close();
 }
-
+}
 function startWaveform() {
-    if (!stream) return;
-
-    if (!audioContext || audioContext.state === "closed") {
-        audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-
-        const source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-
-        analyser.fftSize = 128;
-    }
-
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    const bars = document.querySelectorAll(".bar");
-
-    function draw() {
-        animation = requestAnimationFrame(draw);
-
-        analyser.getByteFrequencyData(data);
-
-        bars.forEach((bar, index) => {
-            const height = Math.max(
-                5,
-                (data[index % data.length] / 255) * 90
-            );
-
-            bar.style.height = height + "px";
-        });
-    }
-
-    draw();
+if (!stream) return;
+if (!audioContext || audioContext.state === "closed") {
+audioContext = new AudioContext();
+analyser = audioContext.createAnalyser();
+const source = audioContext.createMediaStreamSource(stream);
+source.connect(analyser);
+analyser.fftSize = 128;
 }
-
+const data = new Uint8Array(analyser.frequencyBinCount);
+const bars = document.querySelectorAll(".bar");
+function animate() {
+if (!isRecording || isPaused) return;
+analyser.getByteFrequencyData(data);
+bars.forEach((bar, index) => {
+const val = data[index] || 0;
+const height = Math.max(10, (val / 255) * 110);
+bar.style.height = ${height}px;
+});
+animation = requestAnimationFrame(animate);
+}
+animate();
+}
 function saveRecording() {
-    if (!chunks.length) return;
-
-    const mime = recorder.mimeType || "audio/webm";
-    const blob = new Blob(chunks, { type: mime });
-
-    const url = URL.createObjectURL(blob);
-
-    const extension = mime.includes("mp4") ? "mp4" : "webm";
-
-    const recording = {
-        id: Date.now(),
-        name: "Recording " + (recordings.length + 1),
-        duration: formatTime(seconds),
-        blob: blob,
-        url: url,
-        extension: extension
-    };
-
-    recordings.unshift(recording);
-
-    renderRecordings();
+const blob = new Blob(chunks, { type: "audio/webm" });
+const url = URL.createObjectURL(blob);
+const duration = formatTime(seconds);
+const name = Opname ${recordings.length + 1};
+recordings.unshift({ id: Date.now(), name, url, duration });
+renderRecordings();
 }
-
 function renderRecordings() {
-    const container = document.getElementById("recordings");
-
-    document.getElementById("count").textContent =
-        recordings.length + " recordings";
-
-    container.innerHTML = "";
-
-    if (recordings.length === 0) {
-        container.innerHTML =
-            '<div class="empty">Your recordings will appear here.</div>';
-        return;
-    }
-
-    recordings.forEach(item => {
-        const element = document.createElement("div");
-        element.className = "recording-item";
-
-        const icon = document.createElement("div");
-        icon.className = "recording-icon";
-        icon.textContent = "🎵";
-
-        const info = document.createElement("div");
-        info.className = "recording-info";
-
-        const name = document.createElement("h3");
-        name.textContent = item.name;
-
-        const details = document.createElement("p");
-        details.textContent = item.duration + " · Audio recording";
-
-        info.append(name, details);
-
-        const actions = document.createElement("div");
-        actions.className = "item-actions";
-
-        const play = document.createElement("button");
-        play.textContent = "▶";
-        play.title = "Play recording";
-        play.onclick = () => playRecording(item);
-
-        const download = document.createElement("button");
-        download.textContent = "↓";
-        download.title = "Download recording";
-        download.onclick = () => {
-            const a = document.createElement("a");
-            a.href = item.url;
-            a.download = item.name + "." + item.extension;
-            a.click();
-        };
-
-        const remove = document.createElement("button");
-        remove.textContent = "×";
-        remove.title = "Delete recording";
-        remove.onclick = () => deleteRecording(item.id);
-
-        actions.append(play, download, remove);
-        element.append(icon, info, actions);
-
-        container.appendChild(element);
-    });
+countSpan.textContent = ${recordings.length} ${recordings.length === 1 ? 'opname' : 'opnames'};
+if (recordings.length === 0) {
+recordingsContainer.innerHTML = <div class="empty">Opnames verschijnen hier.</div>;
+return;
 }
-
-function playRecording(item) {
-    const audio = new Audio(item.url);
-    audio.play().catch(() => {
-        alert("Unable to play this recording.");
-    });
+recordingsContainer.innerHTML = recordings.map(rec => <div class="recording-item"> <div class="recording-icon">🎙️</div> <div class="recording-info"> <h3>${rec.name}</h3> <p>Duur: ${rec.duration}</p> </div> <div class="item-actions"> <button onclick="playAudio('${rec.url}')" title="Afspelen">▶</button> <a href="${rec.url}" download="${rec.name}.webm" title="Downloaden">⬇</a> <button onclick="deleteRecording(${rec.id})" title="Verwijderen">🗑</button> </div> </div>).join('');
 }
-
+let currentAudio = null;
+function playAudio(url) {
+if (currentAudio) {
+currentAudio.pause();
+}
+currentAudio = new Audio(url);
+currentAudio.play();
+}
 function deleteRecording(id) {
-    const index = recordings.findIndex(item => item.id === id);
-
-    if (index !== -1) {
-        URL.revokeObjectURL(recordings[index].url);
-        recordings.splice(index, 1);
-        renderRecordings();
-    }
+recordings = recordings.filter(r => r.id !== id);
+renderRecordings();
 }
-</script>
-
-</body>
-</html>
