@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Recorder</title>
+<link rel="icon" href="picture.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#08090d;
+  --panel:rgba(255,255,255,.05);
+  --panel-strong:rgba(255,255,255,.08);
+  --border:rgba(255,255,255,.09);
+  --text:#f4f5f7;
+  --muted:#9ea1ad;
+  --accent:#a78bfa;
+  --accent-soft:rgba(167,139,250,.16);
+  --danger:#fb7185;
+  --radius:22px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html,body{height:100%}
+
+body{
+  font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(124,58,237,.22), transparent 42%),
+    radial-gradient(circle at 88% 18%, rgba(56,189,248,.14), transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(236,72,153,.12), transparent 45%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding:24px 16px;
+}
+
+.app{
+  width:100%;
+  max-width:520px;
+  margin:auto;
+}
+
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.035));
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:26px 22px 24px;
+  box-shadow:0 24px 70px rgba(0,0,0,.42);
+  backdrop-filter:blur(22px) saturate(140%);
+  -webkit-backdrop-filter:blur(22px) saturate(140%);
+}
+
+@supports not (backdrop-filter: blur(1px)){
+  .card{background:#15161c}
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.brand-icon{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  font-size:20px;
+  background:linear-gradient(135deg, rgba(167,139,250,.9), rgba(56,189,248,.75));
+  box-shadow:0 10px 24px rgba(167,139,250,.25);
+}
+
+header h1{
+  font-size:19px;
+  font-weight:700;
+  letter-spacing:-.02em;
+}
+
+header p{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:2px;
+}
+
+.install{
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:var(--muted);
+  width:40px;
+  height:40px;
+  border-radius:14px;
+  font-size:18px;
+  display:grid;
+  place-items:center;
+}
+
+.subtitle{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:13px 15px;
+  margin-bottom:22px;
+}
+
+.recorder{
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px 18px 22px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.recorder::before{
+  content:"";
+  position:absolute;
+  inset:-40% 20% auto;
+  height:180px;
+  background:radial-gradient(circle, rgba(167,139,250,.22), transparent 65%);
+  filter:blur(28px);
+  pointer-events:none;
+}
+
+.timer{
+  font-size:52px;
+  font-weight:600;
+  letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;
+  margin:6px 0 8px;
+}
+
+.status{
+  color:var(--muted);
+  font-size:13px;
+  min-height:20px;
+}
+
+.wave-container{
+  height:110px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  margin:20px 0 22px;
+  overflow:hidden;
+}
+
+.bar{
+  width:4px;
+  height:10px;
+  border-radius:99px;
+  background:linear-gradient(180deg, #c4b5fd, #7dd3fc);
+  transition:height .08s ease;
+}
+
+.controls{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+}
+
+.control{
+  border:0;
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  transition:transform .16s ease, background .2s ease, box-shadow .2s ease;
+  color:#fff;
+}
+
+.secondary{
+  width:58px;
+  height:58px;
+  border-radius:20px;
+  font-size:20px;
+  background:var(--panel-strong);
+  border:1px solid var(--border);
+  color:#e6e7ec;
+}
+
+.secondary:hover:not(:disabled){
+  background:rgba(255,255,255,.13);
+}
+
+.record{
+  width:78px;
+  height:78px;
+  border-radius:26px;
+  font-size:26px;
+  background:linear-gradient(135deg, #a78bfa, #7dd3fc);
+  color:#151029;
+  box-shadow:0 16px 36px rgba(167,139,250,.32);
+}
+
+.record:hover{
+  transform:translateY(-2px);
+}
+
+.record.recording{
+  background:linear-gradient(135deg, #fb7185, #f97316);
+  box-shadow:0 16px 36px rgba(251,113,133,.28);
+}
+
+.control:active{
+  transform:scale(.94);
+}
+
+.control:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+}
+
+.section-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:26px 4px 15px;
+}
+
+.section-title h2{
+  font-size:16px;
+  font-weight:650;
+  letter-spacing:-.01em;
+}
+
+.section-title span{
+  color:var(--accent);
+  font-size:12px;
+  font-weight:600;
+}
+
+.recordings{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.recording-item{
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:13px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition:background .2s ease, border-color .2s ease;
+}
+
+.recording-item:hover{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.16);
+}
+
+.recording-icon{
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  border-radius:15px;
+  display:grid;
+  place-items:center;
+  font-size:18px;
+  background:var(--accent-soft);
+  color:#d8caff;
+}
+
+.recording-info{
+  flex:1;
+  min-width:0;
+}
+
+.recording-info h3{
+  font-size:13.5px;
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-bottom:3px;
+}
+
+.recording-info p{
+  color:var(--muted);
+  font-size:11.5px;
+}
+
+.item-actions{
+  display:flex;
+  gap:6px;
+}
+
+.item-actions button{
+  width:34px;
+  height:34px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:transparent;
+  color:#c9c9d4;
+  font-size:15px;
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  transition:.18s ease;
+}
+
+.item-actions button:hover{
+  background:rgba(255,255,255,.08);
+  color:#fff;
+}
+
+.item-actions button:last-child:hover{
+  color:var(--danger);
+}
+
+.empty{
+  text-align:center;
+  padding:32px 14px;
+  color:var(--muted);
+  font-size:13px;
+  border:1px dashed rgba(255,255,255,.13);
+  border-radius:18px;
+}
+
+.footer{
+  text-align:center;
+  color:#6d707b;
+  font-size:11px;
+  margin-top:22px;
+  line-height:1.55;
+}
+
+@media (max-width:420px){
+  body{padding:16px 12px}
+  .card{padding:20px 16px}
+  .timer{font-size:44px}
+  .record{width:70px;height:70px}
+  .secondary{width:52px;height:52px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <div class="card">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">🎙️</div>
+        <div>
+          <h1>Voice Recorder</h1>
+          <p>Door Quinten</p>
+        </div>
+      </div>
+      <button class="install" title="Installeer als app">⤓</button>
+    </header>
+
+    <p class="subtitle">
+      Quinten’s audio-opneem dingetje voor ChromeOS. Installeer deze web-app via de drie puntjes in je browser:
+      kies <strong>Opslaan en delen</strong> en daarna <strong>Pagina installeren als app</strong>.
+    </p>
+
+    <section class="recorder">
+      <div class="timer" id="timer">00:00:00</div>
+      <p class="status" id="status">Klaar om een Quinten-opname op te nemen.</p>
+
+      <div class="wave-container" id="wave"></div>
+
+      <div class="controls">
+        <button class="control secondary" id="pauseBtn" disabled>⏸</button>
+        <button class="control record" id="recordBtn">●</button>
+        <button class="control secondary" id="stopBtn">■</button>
+      </div>
+    </section>
+
+    <div class="section-title">
+      <h2>Uw opnames gemaakt met Q’s site</h2>
+      <span id="count">0 opnames</span>
+    </div>
+
+    <div class="recordings" id="recordings">
+      <div class="empty">Opnames verschijnen hier.</div>
+    </div>
+
+    <div class="footer">
+      Gemaakt door Q · Audio opneem dingetje voor ChromeOS en andere besturingssystemen
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let recorder,stream,chunks=[],seconds=0,timerInterval;
+let isPaused=false,isRecording=false;
+let audioContext,analyser,animation,source;
+let recordings=[];
+
+const DB_NAME="QuintenVoiceRecorder";
+let db;
+
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const request=indexedDB.open(DB_NAME,1);
+  request.onupgradeneeded=()=>{
+   request.result.createObjectStore("recordings",{keyPath:"id",autoIncrement:true});
+  };
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error);
+ });
+}
+
+async function saveToDB(blob){
+ const transaction=db.transaction("recordings","readwrite");
+ transaction.objectStore("recordings").add({
+  name:"Opname "+new Date().toLocaleString("nl-NL"),
+  date:Date.now(),
+  blob
+ });
+ await new Promise((resolve,reject)=>{
+  transaction.oncomplete=resolve;
+  transaction.onerror=()=>reject(transaction.error);
+ });
+ await loadRecordings();
+}
+
+async function loadRecordings(){
+ const transaction=db.transaction("recordings","readonly");
+ const request=transaction.objectStore("recordings").getAll();
+ request.onsuccess=()=>{
+  recordings.forEach(r=>URL.revokeObjectURL(r.url));
+  recordings=request.result.map(r=>({...r,url:URL.createObjectURL(r.blob)}));
+  renderRecordings();
+ };
+}
+
+function renderRecordings(){
+ $("count").textContent=recordings.length+" opnames";
+ const container=$("recordings");
+ container.innerHTML="";
+ if(!recordings.length){
+  container.innerHTML='<div class="empty">Opnames verschijnen hier.</div>';
+  return;
+ }
+ recordings.slice().reverse().forEach(r=>{
+  const item=document.createElement("div");
+  item.className="recording-item";
+  const icon=document.createElement("div");
+  icon.className="recording-icon";
+  icon.textContent="🎵";
+  const info=document.createElement("div");
+  info.className="recording-info";
+  const heading=document.createElement("h3");
+  heading.textContent=r.name;
+  const details=document.createElement("p");
+  details.textContent=new Date(r.date).toLocaleString("nl-NL");
+  info.append(heading,details);
+  const actions=document.createElement("div");
+  actions.className="item-actions";
+
+  const play=document.createElement("button");
+  play.textContent="▶";
+  play.title="Afspelen";
+  play.onclick=()=>{
+   const audio=new Audio(r.url);
+   audio.play().catch(()=>alert("Afspelen mislukt."));
+  };
+
+  const download=document.createElement("button");
+  download.textContent="⬇";
+  download.title="Downloaden";
+  download.onclick=()=>{
+   const a=document.createElement("a");
+   a.href=r.url;
+   a.download="Quinten-opname-"+r.id+".webm";
+   a.click();
+  };
+
+  const del=document.createElement("button");
+  del.textContent="X";
+  del.title="Verwijderen";
+  del.onclick=async()=>{
+   if(!confirm("Deze opname verwijderen?"))return;
+   db.transaction("recordings","readwrite").objectStore("recordings").delete(r.id);
+   await loadRecordings();
+  };
+
+  actions.append(play,download,del);
+  item.append(icon,info,actions);
+  container.append(item);
+ });
+}
+
+function formatTime(s){
+ const h=Math.floor(s/3600);
+ const m=Math.floor(s%3600/60);
+ const sec=s%60;
+ return [h,m,sec].map(n=>String(n).padStart(2,"0")).join(":");
+}
+
+function startWaveform(){
+ if(!audioContext){
+  audioContext=new (window.AudioContext||window.webkitAudioContext)();
+  analyser=audioContext.createAnalyser();
+  analyser.fftSize=128;
+  source=audioContext.createMediaStreamSource(stream);
+  source.connect(analyser);
+ }
+ if(audioContext.state==="suspended")audioContext.resume();
+ const data=new Uint8Array(analyser.frequencyBinCount);
+ const bars=document.querySelectorAll(".bar");
+ cancelAnimationFrame(animation);
+ function draw(){
+  analyser.getByteFrequencyData(data);
+  bars.forEach((bar,i)=>{
+   bar.style.height=(5+data[i%data.length]*0.65)+"px";
+  });
+  animation=requestAnimationFrame(draw);
+ }
+ draw();
+}
+
+function resetWave(){
+ cancelAnimationFrame(animation);
+ document.querySelectorAll(".bar").forEach(b=>b.style.height="10px");
+}
+
+for(let i=0;i<45;i++){
+ const bar=document.createElement("div");
+ bar.className="bar";
+ $("wave").append(bar);
+}
+
+async function startRecording(){
+ try{
+  if(!navigator.mediaDevices?.getUserMedia){
+   throw new Error("Microfoon niet beschikbaar. Gebruik HTTPS.");
+  }
+  stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  chunks=[];
+  const mime=["audio/webm;codecs=opus","audio/webm","audio/mp4"].find(t=>MediaRecorder.isTypeSupported(t));
+  recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});
+  recorder.ondataavailable=e=>{
+   if(e.data.size)chunks.push(e.data);
+  };
+  recorder.onstop=async()=>{
+   if(chunks.length){
+    const blob=new Blob(chunks,{type:recorder.mimeType||"audio/webm"});
+    try{
+     await saveToDB(blob);
+     $("status").textContent="Opname opgeslagen!";
+    }catch(e){
+     $("status").textContent="Opslaan mislukt.";
+     alert("Opslaan mislukt: "+e.message);
+    }
+   }
+  };
+  recorder.start(250);
+  seconds=0;
+  isPaused=false;
+  isRecording=true;
+  $("timer").textContent="00:00:00";
+  $("recordBtn").textContent="■";
+  $("recordBtn").classList.add("recording");
+  $("pauseBtn").disabled=false;
+  $("status").textContent="● Recording...";
+  $("pauseBtn").textContent="⏸";
+  timerInterval=setInterval(()=>{
+   if(!isPaused){
+    seconds++;
+    $("timer").textContent=formatTime(seconds);
+   }
+  },1000);
+  startWaveform();
+ }catch(e){
+  alert("Opnemen mislukt: "+e.message+"\nControleer de microfoontoestemming in Chrome.");
+ }
+}
+
+function stopRecording(){
+ if(!isRecording)return;
+ isRecording=false;
+ isPaused=false;
+ clearInterval(timerInterval);
+ resetWave();
+ recorder.stop();
+ stream.getTracks().forEach(t=>t.stop());
+ $("recordBtn").textContent="●";
+ $("recordBtn").classList.remove("recording");
+ $("pauseBtn").disabled=true;
+ $("pauseBtn").textContent="⏸";
+ $("status").textContent="Opname wordt opgeslagen...";
+ if(audioContext){
+  audioContext.close();
+  audioContext=null;
+  analyser=null;
+ }
+}
+
+function togglePause(){
+ if(!isRecording)return;
+ if(isPaused){
+  recorder.resume();
+  isPaused=false;
+  $("pauseBtn").textContent="⏸";
+  $("status").textContent="● Opnemen...";
+  startWaveform();
+ }else{
+  recorder.pause();
+  isPaused=true;
+  $("pauseBtn").textContent="▶";
+  $("status").textContent="Opname gepauzeerd";
+  resetWave();
+ }
+}
+
+$("recordBtn").addEventListener("click",()=>{
+ if(isRecording)stopRecording();
+ else startRecording();
+});
+$("pauseBtn").addEventListener("click",togglePause);
+$("stopBtn").addEventListener("click",stopRecording);
+
+(async()=>{
+ try{
+  db=await openDB();
+  await loadRecordings();
+ }catch(e){
+  $("status").textContent="Opslag niet beschikbaar";
+  console.error(e);
+ }
+})();
+</script>
+</body>
+</html>
